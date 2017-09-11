@@ -3,7 +3,7 @@
 #include <limits.h>
 #include "WioLTEforArduino.h"
 
-//#define DEBUG
+#define DEBUG
 
 #ifdef DEBUG
 #define DEBUG_PRINT(str)			DebugPrint(str)
@@ -510,19 +510,31 @@ bool WioLTE::Activate(const char* accessPointName, const char* userName, const c
 {
 	const char* parameter;
 
-	_Module.WriteCommand("AT+CREG?");
-	if ((parameter = _Module.WaitForResponse(NULL, 500, "+CREG: ", (ModuleSerial::WaitForResponseFlag)(ModuleSerial::WFR_START_WITH | ModuleSerial::WFR_REMOVE_START_WITH))) == NULL) return RET_ERR(false);
-	if (strcmp(parameter, "0,1") != 0 && strcmp(parameter, "0,3") != 0) return RET_ERR(false);
-	if (_Module.WaitForResponse("OK", 500) == NULL) return RET_ERR(false);
+	if (_Module.WriteCommandAndWaitForResponse("AT+COPS=?", "OK", 150000) == NULL) return RET_ERR(false);
+	if (_Module.WriteCommandAndWaitForResponse("AT+COPS?", "OK", 150000) == NULL) return RET_ERR(false);
+//	if (_Module.WriteCommandAndWaitForResponse("AT+CREG=1", "OK", 150000) == NULL) return RET_ERR(false);
+
+	bool loop;
+	do {
+		_Module.WriteCommand("AT+CREG?");
+		if ((parameter = _Module.WaitForResponse(NULL, 500, "+CREG: ", (ModuleSerial::WaitForResponseFlag)(ModuleSerial::WFR_START_WITH | ModuleSerial::WFR_REMOVE_START_WITH))) == NULL) return RET_ERR(false);
+//	if (strcmp(parameter, "0,1") != 0 && strcmp(parameter, "0,3") != 0) return RET_ERR(false);
+		loop = strcmp(parameter, "0,5") != 0;
+		if (_Module.WaitForResponse("OK", 500) == NULL) return RET_ERR(false);
+		delay(1000);
+	} while (loop);
+	delay(30000);
+	if (_Module.WriteCommandAndWaitForResponse("AT+CREG?", "OK", 150000) == NULL) return RET_ERR(false);
+	
 
 	_Module.WriteCommand("AT+CGREG?");
 	if ((parameter = _Module.WaitForResponse(NULL, 500, "+CGREG: ", (ModuleSerial::WaitForResponseFlag)(ModuleSerial::WFR_START_WITH | ModuleSerial::WFR_REMOVE_START_WITH))) == NULL) return RET_ERR(false);
-	if (strcmp(parameter, "0,1") != 0) return RET_ERR(false);
+//	if (strcmp(parameter, "0,1") != 0) return RET_ERR(false);
 	if (_Module.WaitForResponse("OK", 500) == NULL) return RET_ERR(false);
 
 	_Module.WriteCommand("AT+CEREG?");
 	if ((parameter = _Module.WaitForResponse(NULL, 500, "+CEREG: ", (ModuleSerial::WaitForResponseFlag)(ModuleSerial::WFR_START_WITH | ModuleSerial::WFR_REMOVE_START_WITH))) == NULL) return RET_ERR(false);
-	if (strcmp(parameter, "0,1") != 0) return RET_ERR(false);
+//	if (strcmp(parameter, "0,1") != 0) return RET_ERR(false);
 	if (_Module.WaitForResponse("OK", 500) == NULL) return RET_ERR(false);
 
 	char* str = (char*)alloca(15 + strlen(accessPointName) + 3 + strlen(userName) + 3 + strlen(password) + 3 + 1);

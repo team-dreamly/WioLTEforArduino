@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include "WioLTEforArduino.h"
 
-//#define DEBUG
+#define DEBUG
 
 #ifdef DEBUG
 #define DEBUG_PRINT(str)			DebugPrint(str)
