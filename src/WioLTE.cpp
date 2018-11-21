@@ -487,9 +487,10 @@ int WioLTE::GetIMEI(char* imei, int imeiSize)
 	std::string imeiStr;
 
 	_AtSerial.WriteCommand("AT+GSN");
-	while (true) {
-		if (!_AtSerial.ReadResponse("^(OK|[0-9]+)$", 500, &response)) return RET_ERR(-1, E_UNKNOWN);
-		if (response == "OK") break;
+	bool reading = true;
+	while (reading) {
+		if (!_AtSerial.ReadResponse("^(OK|[0-9]+)$", 500, &response)) return RET_ERR(false, E_UNKNOWN);
+		if (response == "OK") reading = false;
 		imeiStr = response;
 	}
 
