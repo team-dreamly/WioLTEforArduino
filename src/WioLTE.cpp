@@ -481,26 +481,24 @@ bool WioLTE::Wakeup()
 	return RET_OK(true);
 }
 
-int WioLTE::GetIMEI(char* imei, int imeiSize)
+int WioLTE::GetIMEI(char* imei)
 {
 	std::string response;
 	std::string imeiStr;
 
 	_AtSerial.WriteCommand("AT+GSN");
-	bool reading = true;
-	while (reading) {
+	while (true) {
 		if (!_AtSerial.ReadResponse("^(OK|[0-9]+)$", 500, &response)) return RET_ERR(false, E_UNKNOWN);
-		if (response == "OK") reading = false;
+		if (response == "OK") break;
 		imeiStr = response;
 	}
 
-	if ((int)imeiStr.size() + 1 > imeiSize) return RET_ERR(-1, E_UNKNOWN);
 	strcpy(imei, imeiStr.c_str());
 
 	return RET_OK((int)strlen(imei));
 }
 
-int WioLTE::GetIMSI(char* imsi, int imsiSize)
+int WioLTE::GetIMSI(char* imsi)
 {
 	std::string response;
 	std::string imsiStr;
@@ -512,13 +510,12 @@ int WioLTE::GetIMSI(char* imsi, int imsiSize)
 		imsiStr = response;
 	}
 
-	if ((int)imsiStr.size() + 1 > imsiSize) return RET_ERR(-1, E_UNKNOWN);
 	strcpy(imsi, imsiStr.c_str());
 
 	return RET_OK((int)strlen(imsi));
 }
 
-int WioLTE::GetICCID(char* iccid, int iccidSize)
+int WioLTE::GetICCID(char* iccid)
 {
 	std::string response;
 
@@ -527,13 +524,12 @@ int WioLTE::GetICCID(char* iccid, int iccidSize)
 	if (!_AtSerial.ReadResponse("^OK$", 500, NULL)) return RET_ERR(-1, E_UNKNOWN);
 	response.erase(response.size() - 1, 1);
 
-	if ((int)response.size() + 1 > iccidSize) return RET_ERR(-1, E_UNKNOWN);
 	strcpy(iccid, response.c_str());
 
 	return RET_OK((int)strlen(iccid));
 }
 
-int WioLTE::GetPhoneNumber(char* number, int numberSize)
+int WioLTE::GetPhoneNumber(char* number)
 {
 	std::string response;
 	ArgumentParser parser;
@@ -551,7 +547,6 @@ int WioLTE::GetPhoneNumber(char* number, int numberSize)
 		numberStr = parser[1];
 	}
 
-	if ((int)numberStr.size() + 1 > numberSize) return RET_ERR(-1, E_UNKNOWN);
 	strcpy(number, numberStr.c_str());
 
 	return RET_OK((int)strlen(number));
